@@ -30,11 +30,11 @@ Five pieces, each with one job:
 
 | Piece | Job | Where it lives |
 | --- | --- | --- |
-| `selcy-orchestrator` profile | Read the card, delegate one feature, verify, close the card | `C:\Users\ADIB\AppData\Local\hermes\profiles\selcy-orchestrator\` |
+| `selcy-orchestrator` profile | Read the card, delegate one feature, verify, close the card | `~/.hermes/profiles/selcy-orchestrator/` |
 | `SOUL.md` | The worker's rules: never build, never edit specs, never answer owed decisions | Same folder |
 | `selcy-orchestrate` skill | The two phases: bootstrap the board, then the worker loop | This repo, `skills/selcy-orchestrate/SKILL.md` |
 | Kanban board | The trigger and the state. One card per feature, chained in order | `~/.hermes/kanban.db` |
-| Gateway dispatcher | The event loop. Claims a ready card every 60s and spawns the worker | Already running as a Windows startup item |
+| Gateway dispatcher | The event loop. Claims a ready card every 60s and spawns the worker | Runs as a background service |
 
 The trigger is not a cron job and not a human. It is the dispatcher: a loop inside the gateway that claims any card in `ready` status and spawns the assigned profile. You create the cards once; the board does the rest.
 
@@ -78,7 +78,7 @@ Check it has a model and API keys. If not, run `selcy-orchestrator setup` (the w
 
 ### 5. Confirm the dispatcher is running
 
-It should already be up — it installs as a Windows startup item. Verify:
+It should already be up — on Windows it installs as a startup item, on Linux `hermes gateway start` installs a systemd user unit. Verify:
 
 ```bash
 hermes gateway status
@@ -90,6 +90,14 @@ If it is not running, start it and it will survive reboots:
 ```bash
 hermes gateway start
 ```
+
+On Linux, one extra step matters. Workers are fire-and-forget processes that must outlive the dispatcher tick, so the gateway spawns each one in its own systemd scope. That needs your user's session bus — without it the spawn is refused as an infrastructure failure and the card stays in `ready`. Enable lingering once:
+
+```bash
+sudo loginctl enable-linger <your-user>
+```
+
+This is the only Linux-specific gotcha in the whole setup. Everything else — the board, the dispatcher loop, the worker protocol, the skill — is identical on both platforms.
 
 ## The run
 

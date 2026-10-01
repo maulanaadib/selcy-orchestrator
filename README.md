@@ -46,7 +46,7 @@ The dispatcher is a loop inside the Hermes gateway that ticks every 60 seconds. 
 | `SOUL.md` | The worker's rules: never build, never edit specs, never answer owed decisions | Same folder |
 | `selcy-orchestrate` skill | Two phases: bootstrap the board, then the worker loop | `skills/selcy-orchestrate/SKILL.md` in this repo |
 | Kanban board | The trigger and the state. One card per feature, chained in order | `~/.hermes/kanban.db` |
-| Gateway dispatcher | The event loop. Claims a ready card every 60s and spawns the worker | Runs as a Windows startup item |
+| Gateway dispatcher | The event loop. Claims a ready card every 60s and spawns the worker | Runs as a background service (Windows startup item, or systemd unit on Linux) |
 
 ## Install
 
@@ -106,7 +106,7 @@ The dependency runs one way: this repo depends on `skills-selcy`, never the reve
 
 - A Hermes profile named `selcy-orchestrator` (the runbook creates it).
 - The kanban toolset enabled on that profile (`hermes -p selcy-orchestrator tools enable kanban`).
-- The Hermes gateway running (it installs as a Windows startup item; `hermes gateway status` to check).
+- The Hermes gateway running. On Windows it installs as a startup item; on Linux `hermes gateway start` installs a systemd user unit. Check with `hermes gateway status`.
 - `opencode` on PATH, for the delegation.
 - `git` on PATH, for kanban mode.
 - A `context/` bundle written by `/sdd-selcy`. Without one, the orchestrator refuses and tells you to run it first.
