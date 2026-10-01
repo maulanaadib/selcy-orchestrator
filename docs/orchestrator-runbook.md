@@ -42,15 +42,30 @@ This repo is separate from `skills-selcy`. `skills-selcy` holds the spec-driven 
 
 ## One time setup
 
-### 1. Install both skill bundles into the new project
+### 1. Install the two skill bundles into the new project
 
-The project needs the spec-driven skills (the builder's tools) and this orchestrator skill:
+The two bundles install to **different agents, on purpose**. The `-a` flag decides which agent reads the skill:
 
 ```bash
 cd <new-project-dir>
+
+# The spec-driven skills → the BUILDER. /sdd-selcy and /selcy run inside `opencode run`,
+# so these must land where opencode reads them.
 npx skills@latest add maulanaadib/skills-selcy -a opencode
-npx skills@latest add maulanaadib/selcy-orchestrator -a opencode
+
+# This orchestrator → the ORCHESTRATOR. The dispatcher spawns the selcy-orchestrator
+# Hermes profile to work each card, so this must land where Hermes reads it.
+npx skills@latest add maulanaadib/selcy-orchestrator -a hermes-agent
 ```
+
+Where each one lands:
+
+| Bundle | Agent flag | Directory created |
+| --- | --- | --- |
+| `skills-selcy` | `-a opencode` | `.agents/skills/` |
+| `selcy-orchestrator` | `-a hermes-agent` | `.hermes/skills/` |
+
+Getting this backwards is the most common install failure, and it fails silently: the file is on disk, the agent that needs it never loads it. If `opencode run` later says it does not know `/sdd-selcy`, or the Hermes worker says it has no `selcy-orchestrate` skill, check this table.
 
 ### 2. Install the orchestrator skill into the Hermes profile
 

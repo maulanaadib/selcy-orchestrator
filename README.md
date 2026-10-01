@@ -50,17 +50,20 @@ The dispatcher is a loop inside the Hermes gateway that ticks every 60 seconds. 
 
 ## Install
 
-Uses [npx skills](https://github.com/vercel-labs/skills), into the project you want to build:
+The two bundles install to **different agents, on purpose**. The `-a` flag decides which agent reads the skill:
 
 ```bash
-# The spec-driven skills (the builder's tools)
+# The spec-driven skills → the BUILDER (opencode runs them inside `opencode run`)
+cd <new-project-dir>
 npx skills@latest add maulanaadib/skills-selcy -a opencode
 
-# This orchestrator
-npx skills@latest add maulanaadib/selcy-orchestrator -a opencode
+# This orchestrator → the ORCHESTRATOR (the Hermes profile the dispatcher spawns)
+npx skills@latest add maulanaadib/selcy-orchestrator -a hermes-agent
 ```
 
-Both are needed. The orchestrator delegates to a builder that uses the `skills-selcy` skills.
+They are not interchangeable. `skills-selcy` must land where the builder can read it, because `/sdd-selcy` and `/selcy` run inside `opencode run`. `selcy-orchestrator` must land where the Hermes profile can read it, because the dispatcher spawns that profile to work each card. Installing the orchestrator with `-a opencode` puts it in `.agents/skills/`, where Hermes never looks — the skill would be on disk and the worker would still not have it loaded.
+
+Both bundles are still needed. The orchestrator delegates to a builder that uses the `skills-selcy` skills.
 
 Then three one-time setup steps on the Hermes profile — install the skill into the profile, enable the kanban toolset, and confirm the dispatcher is running. Full walkthrough: **[docs/orchestrator-runbook.md](docs/orchestrator-runbook.md)**.
 
